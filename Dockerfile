@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install
 COPY . .
+RUN chmod +x node_modules/.bin/vite
 RUN npm run build
 # Step 2: Serve the production build with nginx
 FROM nginx:alpine
