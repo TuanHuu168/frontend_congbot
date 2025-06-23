@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { showError, showSuccess, getAuthData, clearAuthData } from './utils/formatUtils';
 
-const API_BASE_URL = 'http://localhost:8001';
+const API_BASE_URL = 'https://ng3owb-testapi.hf.space';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
