@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 
+
 /* Ẩn thanh scrollbar cho Webkit (Chrome, Safari, etc.) */
 .scrollbar-hide::-webkit-scrollbar {
 display: none;
