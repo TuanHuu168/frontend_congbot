@@ -1,0 +1,13 @@
+[phases.build]
+cmds = ["npm run build"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = [
+    "curl -fsSLo caddy.tar.gz \"https://github.com/caddyserver/caddy/releases/download/v2.7.6/caddy_2.7.6_linux_amd64.tar.gz\"",
+    "tar -zxvf caddy.tar.gz caddy",
+    "chmod +x caddy"
+]
+
+[start]
+cmd = "./caddy run --config Caddyfile --adapter caddyfile"
