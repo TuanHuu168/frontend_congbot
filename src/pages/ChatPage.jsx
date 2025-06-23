@@ -9,7 +9,7 @@ import ChatSidebar from '../components/chat/ChatSidebar';
 import MessageItem from '../components/chat/MessageItem';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { getDisplayTitle, pageVariants, showError } from '../utils/formatUtils';
-import chatbotIcon from '../../../assets/images/chatbot-icon.png';
+import chatbotIcon from '../../assets/images/chatbot-icon.png';
 
 const ChatPage = () => {
   const navigate = useNavigate();
