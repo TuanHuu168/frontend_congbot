@@ -88,11 +88,11 @@ export const chatAPI = {
 
 // Admin API
 export const adminAPI = {
-  getStatus: () => apiCall('get', '/status'),
-  clearCache: () => apiCall('post', '/clear-cache'),
-  runBenchmark: (config) => apiCall('post', '/run-benchmark', config),
-  getDocuments: () => apiCall('get', '/documents'),
-  deleteDocument: (docId) => apiCall('delete', `/documents/${docId}?confirm=true`)
+  getStatus: () => apiCall('get', '/admin/status'),
+  clearCache: () => apiCall('post', '/admin/clear-cache'),
+  runBenchmark: (config) => apiCall('post', '/admin/run-benchmark', config),
+  getDocuments: () => apiCall('get', '/admin/documents'),
+  deleteDocument: (docId) => apiCall('delete', `/admin/documents/${docId}?confirm=true`)
 };
 
 // Legacy exports
