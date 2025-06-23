@@ -146,7 +146,7 @@ const AdminPage = () => {
         formData.append('chunks', file);
       });
 
-      const response = await fetch(`https://ng3owb-testapi.hf.space/api/upload-document`, {
+      const response = await fetch(`https://ng3owb-testapi.hf.space/api/admin/upload-document`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: formData
@@ -219,7 +219,7 @@ const AdminPage = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`https://ng3owb-testapi.hf.space/api/invalidate-cache/${invalidateDocId}`, {
+      const response = await fetch(`https://ng3owb-testapi.hf.space/api/admin/invalidate-cache/${invalidateDocId}`, {
         method: 'POST',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
       });
