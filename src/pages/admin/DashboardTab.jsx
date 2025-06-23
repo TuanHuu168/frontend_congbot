@@ -18,7 +18,7 @@ const DashboardTab = ({ systemStats, users, documents, benchmarkResults, isLoadi
         const fetchRecentActivities = async () => {
             try {
                 setActivitiesLoading(true);
-                const response = await fetch('http://localhost:8001/recent-activities?limit=8');
+                const response = await fetch('https://ng3owb-testapi.hf.space/api/admin/recent-activities?limit=8');
                 if (response.ok) {
                     const data = await response.json();
                     setRecentActivities(data.activities || []);
