@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { showError, showSuccess, getAuthData, clearAuthData } from './utils/formatUtils';
 
-// Sử dụng environment variable nhưng có fallback cho local
-const API_BASE_URL = 'https://ng3owb-congbotfe.hf.space/api';
+const API_BASE_URL = 'https://ng3owb-congbotfe.hf.space';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
