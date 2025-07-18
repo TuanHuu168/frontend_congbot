@@ -91,19 +91,19 @@ export const chatAPI = {
 
 // Admin API với endpoints cập nhật
 export const adminAPI = {
-  getStatus: () => apiCall('get', 'admin/status'),
-  clearCache: () => apiCall('post', 'admin/clear-cache'),
-  runBenchmark: (config) => apiCall('post', 'admin/run-benchmark', config),
-  getDocuments: () => apiCall('get', 'admin/documents'),
-  deleteDocument: (docId) => apiCall('delete', `admin/documents/${docId}?confirm=true`),
-  getBenchmarkResults: () => apiCall('get', 'admin/benchmark-results'),
-  getStatistics: () => apiCall('get', 'admin/statistics'),
-  getAllUsers: (limit = 100, skip = 0) => apiCall('get', `admin/users?limit=${limit}&skip=${skip}`),
-  getUserDetail: (userId) => apiCall('get', `admin/users/${userId}`),
-  updateUser: (userId, userData) => apiCall('put', `admin/users/${userId}`, userData),
-  deleteUser: (userId) => apiCall('delete', `admin/users/${userId}?confirm=true`),
-  resetUserPassword: (userId, newPassword) => apiCall('post', `admin/users/${userId}/reset-password`, { new_password: newPassword }),
-  toggleUserStatus: (userId) => apiCall('post', `admin/users/${userId}/toggle-status`)
+  getStatus: () => apiCall('get', '/status'),
+  clearCache: () => apiCall('post', '/clear-cache'),
+  runBenchmark: (config) => apiCall('post', '/run-benchmark', config),
+  getDocuments: () => apiCall('get', '/documents'),
+  deleteDocument: (docId) => apiCall('delete', `/documents/${docId}?confirm=true`),
+  getBenchmarkResults: () => apiCall('get', '/benchmark-results'),
+  getStatistics: () => apiCall('get', '/statistics'),
+  getAllUsers: (limit = 100, skip = 0) => apiCall('get', `/users?limit=${limit}&skip=${skip}`),
+  getUserDetail: (userId) => apiCall('get', `/users/${userId}`),
+  updateUser: (userId, userData) => apiCall('put', `/users/${userId}`, userData),
+  deleteUser: (userId) => apiCall('delete', `/users/${userId}?confirm=true`),
+  resetUserPassword: (userId, newPassword) => apiCall('post', `/users/${userId}/reset-password`, { new_password: newPassword }),
+  toggleUserStatus: (userId) => apiCall('post', `/users/${userId}/toggle-status`)
 };
 
 // Legacy exports để tương thích
