@@ -1,89 +1,86 @@
 import Swal from 'sweetalert2';
 
-// Date formatting utilities
+// Múi giờ Việt Nam
+const VN_TIMEZONE = 'Asia/Ho_Chi_Minh';
+
+// Định dạng ngày tháng theo múi giờ Việt Nam
 export const formatDate = (dateString) => {
   if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  const now = new Date();
   
-  const isSameDay = (d1, d2) => d1.toDateString() === d2.toDateString();
-  
-  if (isSameDay(date, now)) {
-    return `Hôm nay, ${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+    
+    return date.toLocaleString('vi-VN', {
+      timeZone: VN_TIMEZONE,
+      year: 'numeric',
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  } catch (error) {
+    console.error('Lỗi định dạng ngày:', error);
+    return 'Lỗi định dạng';
   }
-
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  
-  if (isSameDay(date, yesterday)) {
-    return `Hôm qua, ${date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
-  }
-
-  return date.toLocaleDateString('vi-VN', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
 };
 
-export const getDateLabel = (dateString) => {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const chatDate = new Date(dateString);
+// Định dạng ngày ngắn gọn
+export const formatShortDate = (dateString) => {
+  if (!dateString) return 'N/A';
   
-  if (chatDate.toDateString() === today.toDateString()) return 'Hôm nay';
-  if (chatDate.toDateString() === yesterday.toDateString()) return 'Hôm qua';
-  return chatDate.toLocaleDateString('vi-VN');
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    return date.toLocaleDateString('vi-VN', {
+      timeZone: VN_TIMEZONE,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return 'N/A';
+  }
 };
 
-// Chat title utilities
+// Định dạng thời gian tương đối
+export const formatRelativeTime = (dateString) => {
+  if (!dateString) return 'N/A';
+  
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 1) return 'Vừa xong';
+    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+    if (diffInHours < 24) return `${diffInHours} giờ trước`;
+    if (diffInDays < 30) return `${diffInDays} ngày trước`;
+    
+    return formatShortDate(dateString);
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
+// Lấy tên hiển thị cho chat
 export const getDisplayTitle = (chat) => {
-  if (!chat?.title || chat.title.trim() === '') return "Cuộc trò chuyện mới";
-  const isMongoId = /^[0-9a-fA-F]{24}$/.test(chat.title);
-  return isMongoId ? "Cuộc trò chuyện mới" : chat.title;
+  return !chat?.title || chat.title.trim() === '' ? 
+    "Cuộc trò chuyện mới" : chat.title;
 };
 
+// Cắt ngắn văn bản
 export const truncateText = (text, maxLength = 150) => {
   if (!text || text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 };
 
-// Validation utilities
-export const validateEmail = (email) => {
-  if (!email) return 'Vui lòng nhập email';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Email không hợp lệ';
-  return '';
-};
-
-export const validatePassword = (password) => {
-  if (!password) return 'Vui lòng nhập mật khẩu';
-  if (password.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự';
-  return '';
-};
-
-export const validateUsername = (username) => {
-  if (!username) return 'Vui lòng nhập tên đăng nhập';
-  if (username.length < 3) return 'Tên đăng nhập phải có ít nhất 3 ký tự';
-  return '';
-};
-
-export const validateFullName = (fullName) => {
-  if (!fullName) return 'Vui lòng nhập họ và tên';
-  return '';
-};
-
-export const validatePhoneNumber = (phoneNumber) => {
-  if (!phoneNumber) return 'Vui lòng nhập số điện thoại';
-  return '';
-};
-
-export const validateConfirmPassword = (password, confirmPassword) => {
-  if (!confirmPassword) return 'Vui lòng xác nhận mật khẩu';
-  if (password !== confirmPassword) return 'Mật khẩu không khớp';
-  return '';
-};
-
-// Animation variants
+// Hiệu ứng animation
 export const pageVariants = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: { duration: 0.4 } },
@@ -92,10 +89,7 @@ export const pageVariants = {
 
 export const slideUpVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, y: 0, 
-    transition: { type: "spring", stiffness: 260, damping: 20 }
-  }
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 260, damping: 20 } }
 };
 
 export const itemVariants = {
@@ -106,39 +100,49 @@ export const itemVariants = {
 
 export const containerVariants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 }
-  }
+  visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
 };
 
-// Alert utilities
+// Tiện ích thông báo với cấu hình mặc định
+const alertConfig = { 
+  confirmButtonColor: '#10b981', 
+  customClass: { popup: 'rounded-xl shadow-xl' } 
+};
+
 export const showError = (message, title = 'Lỗi') => {
-  return Swal.fire({
-    icon: 'error', title, text: message,
-    confirmButtonColor: '#10b981',
-    customClass: { popup: 'rounded-xl shadow-xl' }
+  return Swal.fire({ 
+    icon: 'error', 
+    title, 
+    text: message, 
+    ...alertConfig 
   });
 };
 
 export const showSuccess = (message, title = 'Thành công') => {
-  return Swal.fire({
-    icon: 'success', title, text: message,
-    confirmButtonColor: '#10b981', timer: 2000,
-    customClass: { popup: 'rounded-xl shadow-xl' }
+  return Swal.fire({ 
+    icon: 'success', 
+    title, 
+    text: message, 
+    timer: 2000, 
+    ...alertConfig 
   });
 };
 
 export const showConfirm = (message, title = 'Xác nhận') => {
   return Swal.fire({
-    title, text: message, icon: 'question',
-    showCancelButton: true, confirmButtonText: 'Xác nhận', cancelButtonText: 'Hủy',
-    confirmButtonColor: '#10b981', cancelButtonColor: '#64748b',
-    customClass: { popup: 'rounded-xl shadow-xl' }
+    title, 
+    text: message, 
+    icon: 'question', 
+    showCancelButton: true, 
+    confirmButtonText: 'Xác nhận', 
+    cancelButtonText: 'Hủy',
+    confirmButtonColor: '#10b981', 
+    cancelButtonColor: '#64748b', 
+    ...alertConfig
   });
 };
 
-// Auth utilities
+// Tiện ích xác thực
 export const getAuthData = () => {
   const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
   const userId = localStorage.getItem('user_id') || sessionStorage.getItem('user_id');
@@ -152,18 +156,26 @@ export const clearAuthData = () => {
   });
 };
 
-// Constants
+// Hằng số đường dẫn
 export const ROUTES = {
-  HOME: '/',
-  LOGIN: '/login',
+  HOME: '/', 
+  LOGIN: '/login', 
   REGISTER: '/register', 
   CHAT: '/chat',
-  HISTORY: '/history',
-  PROFILE: '/profile',
+  HISTORY: '/history', 
+  PROFILE: '/profile', 
   ADMIN: '/admin'
 };
 
-export const STORAGE_KEYS = {
-  AUTH_TOKEN: 'auth_token',
-  USER_ID: 'user_id'
+export const STORAGE_KEYS = { 
+  AUTH_TOKEN: 'auth_token', 
+  USER_ID: 'user_id' 
 };
+
+// Lấy thời gian hiện tại theo múi giờ Việt Nam
+export const getCurrentVNTime = () => {
+  return new Date().toLocaleString('sv-SE', { timeZone: VN_TIMEZONE });
+};
+
+// Xuất hằng số múi giờ
+export { VN_TIMEZONE };

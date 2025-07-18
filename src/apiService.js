@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { showError, showSuccess, getAuthData, clearAuthData } from './utils/formatUtils';
 
-const API_BASE_URL = 'https://ng3owb-testapi.hf.space/api'; 
+// Sử dụng environment variable nhưng có fallback cho local
+const API_BASE_URL = 'https://ng3owb-testapi.hf.space/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -51,7 +52,7 @@ export const userAPI = {
   register: (userData) => apiCall('post', '/users/register', userData),
   login: (credentials) => apiCall('post', '/users/login', credentials),
   update: (userId, data) => apiCall('put', `/users/${userId}`, data),
-  changePassword: (userId, passwords) => apiCall('put', `/users/${userId}/password`, passwords)
+  changePassword: (userId, passwords) => apiCall('put', `/users/${userId}/change-password`, passwords)
 };
 
 // Chat API
@@ -59,7 +60,9 @@ export const chatAPI = {
   ask: (query, sessionId = null) => {
     const { userId } = getAuthData();
     return apiCall('post', '/ask', {
-      query, user_id: userId, session_id: sessionId,
+      query, 
+      user_id: userId, 
+      session_id: sessionId,
       client_info: {
         platform: 'web',
         deviceType: navigator.userAgent.includes('Mobile') ? 'mobile' : 'desktop'
@@ -86,16 +89,24 @@ export const chatAPI = {
   }
 };
 
-// Admin API
+// Admin API với endpoints cập nhật
 export const adminAPI = {
-  getStatus: () => apiCall('get', '/admin/status'),
-  clearCache: () => apiCall('post', '/admin/clear-cache'),
-  runBenchmark: (config) => apiCall('post', '/admin/run-benchmark', config),
-  getDocuments: () => apiCall('get', '/admin/documents'),
-  deleteDocument: (docId) => apiCall('delete', `/admin/documents/${docId}?confirm=true`)
+  getStatus: () => apiCall('get', '/status'),
+  clearCache: () => apiCall('post', '/clear-cache'),
+  runBenchmark: (config) => apiCall('post', '/run-benchmark', config),
+  getDocuments: () => apiCall('get', '/documents'),
+  deleteDocument: (docId) => apiCall('delete', `/documents/${docId}?confirm=true`),
+  getBenchmarkResults: () => apiCall('get', '/benchmark-results'),
+  getStatistics: () => apiCall('get', '/statistics'),
+  getAllUsers: (limit = 100, skip = 0) => apiCall('get', `/users?limit=${limit}&skip=${skip}`),
+  getUserDetail: (userId) => apiCall('get', `/users/${userId}`),
+  updateUser: (userId, userData) => apiCall('put', `/users/${userId}`, userData),
+  deleteUser: (userId) => apiCall('delete', `/users/${userId}?confirm=true`),
+  resetUserPassword: (userId, newPassword) => apiCall('post', `/users/${userId}/reset-password`, { new_password: newPassword }),
+  toggleUserStatus: (userId) => apiCall('post', `/users/${userId}/toggle-status`)
 };
 
-// Legacy exports
+// Legacy exports để tương thích
 export const askQuestion = chatAPI.ask;
 export const createNewChat = chatAPI.create;
 export const getUserChats = chatAPI.getAll;
@@ -107,3 +118,6 @@ export const getUserInfo = userAPI.getInfo;
 
 // Export utilities
 export { showError, showSuccess };
+
+// Hàm để lấy base URL
+export const getApiBaseUrl = () => API_BASE_URL;

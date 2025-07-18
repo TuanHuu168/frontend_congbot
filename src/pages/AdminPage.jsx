@@ -1,20 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { RefreshCw, Upload, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { RefreshCw, LayoutDashboard, Users, FileText, Database, BarChart2, LogOut, User, ChevronLeft } from 'lucide-react';
 import { adminAPI } from '../apiService';
+import { showConfirm, showError, showSuccess, clearAuthData, formatDate, pageVariants } from '../utils/formatUtils';
 import TopNavBar from '../components/common/TopNavBar';
-import AdminSidebar from '../components/admin/AdminSidebar';
 import ErrorMessage from '../components/common/ErrorMessage';
 import DashboardTab from './admin/DashboardTab';
 import UsersTab from './admin/UsersTab';
 import DocumentsTab from './admin/DocumentsTab';
 import CacheTab from './admin/CacheTab';
 import BenchmarkTab from './admin/BenchmarkTab';
-import { formatDate, pageVariants, showConfirm, showError, showSuccess, clearAuthData } from '../utils/formatUtils';
 
 const AdminPage = () => {
   const navigate = useNavigate();
+  
+  // State quản lý tab hiện tại và dữ liệu hệ thống
   const [activeTab, setActiveTab] = useState('dashboard');
   const [systemStats, setSystemStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -23,41 +24,30 @@ const AdminPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [adminAuth, setAdminAuth] = useState(true);
 
+  // State quản lý văn bản
   const [documentFilter, setDocumentFilter] = useState('');
   const [documentFiles, setDocumentFiles] = useState([]);
   const [uploadMetadata, setUploadMetadata] = useState({
     doc_id: '', doc_type: 'Thông tư', doc_title: '', effective_date: '', status: 'active', document_scope: 'Quốc gia'
   });
 
+  // State quản lý benchmark
   const [runningBenchmark, setRunningBenchmark] = useState(false);
   const [benchmarkProgress, setBenchmarkProgress] = useState(0);
 
+  // State quản lý cache
   const [invalidateDocId, setInvalidateDocId] = useState('');
   const [searchCacheKeyword, setSearchCacheKeyword] = useState('');
 
-  useEffect(() => {
-    if (adminAuth) {
-      fetchSystemStats();
-      fetchUsers();
-      fetchDocuments();
-      fetchBenchmarkResults();
-    }
-  }, [adminAuth]);
-
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-    return { Authorization: `Bearer ${token}` };
-  };
-
+  // Các hàm fetch dữ liệu từ API
   const fetchSystemStats = async () => {
     try {
       setIsLoading(true);
       const response = await adminAPI.getStatus();
       setSystemStats(response);
     } catch (error) {
-      console.error('Error fetching system stats:', error);
+      console.error('Lỗi khi tải thông tin hệ thống:', error);
       setError('Không thể tải thông tin hệ thống');
     } finally {
       setIsLoading(false);
@@ -67,39 +57,19 @@ const AdminPage = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      try {
-        const response = await adminAPI.getStatistics();
-        if (response && response.users) {
-          setUsers(response.users.map(user => ({
-            id: user.id || user._id,
-            username: user.username,
-            email: user.email,
-            fullName: user.fullName || user.name,
-            role: user.role || 'user',
-            status: user.status || 'active',
-            lastLogin: user.lastLogin || user.lastLoginAt
-          })));
-          return;
-        }
-      } catch (e) {
-        console.log('Không thể lấy thông tin người dùng từ endpoint statistics, thử phương pháp khác...');
-      }
-
-      const userId = localStorage.getItem('user_id') || sessionStorage.getItem('user_id');
-      if (userId) {
-        setUsers([
-          { id: '1', username: 'admin', email: 'admin@example.com', role: 'admin', status: 'active', lastLogin: new Date().toISOString() }
-        ]);
-      }
+      const response = await adminAPI.getAllUsers();
+      setUsers(response.users || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Lỗi khi tải danh sách người dùng:', error);
       setError('Không thể tải danh sách người dùng');
-      setUsers([
-        { id: '1', username: 'admin', email: 'admin@example.com', role: 'admin', status: 'active', lastLogin: new Date().toISOString() }
-      ]);
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const refreshUsers = async () => {
+    await fetchUsers();
   };
 
   const fetchDocuments = async () => {
@@ -108,7 +78,7 @@ const AdminPage = () => {
       const response = await adminAPI.getDocuments();
       setDocuments(response.documents || []);
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      console.error('Lỗi khi tải danh sách văn bản:', error);
       setError('Không thể tải danh sách văn bản');
     } finally {
       setIsLoading(false);
@@ -121,13 +91,30 @@ const AdminPage = () => {
       const response = await adminAPI.getBenchmarkResults();
       setBenchmarkResults(response.results || []);
     } catch (error) {
-      console.error('Error fetching benchmark results:', error);
+      console.error('Lỗi khi tải kết quả benchmark:', error);
       setError('Không thể tải kết quả benchmark');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Tải dữ liệu ban đầu khi component mount
+  useEffect(() => {
+    Promise.allSettled([
+      fetchSystemStats(),
+      fetchUsers(),
+      fetchDocuments(),
+      fetchBenchmarkResults()
+    ]);
+  }, []);
+
+  // Lấy header xác thực từ localStorage
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+    return { Authorization: `Bearer ${token}` };
+  };
+
+  // Xử lý upload văn bản
   const handleUploadDocument = async (e) => {
     e.preventDefault();
 
@@ -146,7 +133,7 @@ const AdminPage = () => {
         formData.append('chunks', file);
       });
 
-      const response = await fetch(`https://ng3owb-testapi.hf.space/api/admin/upload-document`, {
+      const response = await fetch(`http://localhost:8001/upload-document`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: formData
@@ -165,16 +152,17 @@ const AdminPage = () => {
       });
       setDocumentFiles([]);
 
-      fetchDocuments();
+      await fetchDocuments();
 
     } catch (error) {
-      console.error('Error uploading document:', error);
+      console.error('Lỗi khi tải lên văn bản:', error);
       showError('Không thể tải lên văn bản. Vui lòng thử lại.', 'Lỗi tải lên');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Xử lý xóa văn bản
   const handleDeleteDocument = async (docId) => {
     showConfirm(`Bạn có chắc chắn muốn xóa văn bản ${docId}? Hành động này không thể hoàn tác.`, 'Xác nhận xóa').then(async (result) => {
       if (result.isConfirmed) {
@@ -182,9 +170,9 @@ const AdminPage = () => {
           setIsLoading(true);
           await adminAPI.deleteDocument(docId);
           showSuccess(`Văn bản ${docId} đã được xóa thành công`, 'Đã xóa văn bản');
-          fetchDocuments();
+          await fetchDocuments();
         } catch (error) {
-          console.error('Error deleting document:', error);
+          console.error('Lỗi khi xóa văn bản:', error);
           showError('Không thể xóa văn bản. Vui lòng thử lại.', 'Lỗi xóa văn bản');
         } finally {
           setIsLoading(false);
@@ -193,6 +181,7 @@ const AdminPage = () => {
     });
   };
 
+  // Xử lý xóa toàn bộ cache
   const handleClearCache = () => {
     showConfirm('Bạn có chắc chắn muốn xóa toàn bộ cache? Hành động này không thể hoàn tác.', 'Xác nhận xóa cache').then(async (result) => {
       if (result.isConfirmed) {
@@ -200,9 +189,9 @@ const AdminPage = () => {
           setIsLoading(true);
           await adminAPI.clearCache();
           showSuccess('Toàn bộ cache đã được xóa thành công', 'Đã xóa cache');
-          fetchSystemStats();
+          await fetchSystemStats();
         } catch (error) {
-          console.error('Error clearing cache:', error);
+          console.error('Lỗi khi xóa cache:', error);
           showError('Không thể xóa cache. Vui lòng thử lại.', 'Lỗi xóa cache');
         } finally {
           setIsLoading(false);
@@ -211,6 +200,7 @@ const AdminPage = () => {
     });
   };
 
+  // Xử lý vô hiệu hóa cache theo document ID
   const handleInvalidateDocCache = async () => {
     if (!invalidateDocId) {
       showError('Vui lòng nhập ID văn bản để vô hiệu hóa cache.', 'Cần nhập ID văn bản');
@@ -219,7 +209,7 @@ const AdminPage = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetch(`https://ng3owb-testapi.hf.space/api/admin/invalidate-cache/${invalidateDocId}`, {
+      const response = await fetch(`http://localhost:8001/invalidate-cache/${invalidateDocId}`, {
         method: 'POST',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
       });
@@ -233,15 +223,16 @@ const AdminPage = () => {
       showSuccess(`Đã vô hiệu hóa ${result.affected_count} cache liên quan đến văn bản ${invalidateDocId}`, 'Vô hiệu hóa cache thành công');
 
       setInvalidateDocId('');
-      fetchSystemStats();
+      await fetchSystemStats();
     } catch (error) {
-      console.error('Error invalidating cache:', error);
+      console.error('Lỗi khi vô hiệu hóa cache:', error);
       showError('Không thể vô hiệu hóa cache. Vui lòng thử lại.', 'Lỗi vô hiệu hóa cache');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Xử lý tìm kiếm cache (chức năng đang phát triển)
   const handleSearchCache = async () => {
     if (!searchCacheKeyword) {
       showError('Vui lòng nhập từ khóa để tìm kiếm trong cache.', 'Cần nhập từ khóa');
@@ -251,6 +242,7 @@ const AdminPage = () => {
     showSuccess('Chức năng tìm kiếm cache sẽ được triển khai trong phiên bản tiếp theo.', 'Tính năng đang phát triển');
   };
 
+  // Xử lý chạy benchmark
   const handleRunBenchmark = async () => {
     showConfirm('Quá trình benchmark có thể mất vài phút để hoàn thành. Bạn có muốn tiếp tục?', 'Xác nhận chạy benchmark').then(async (result) => {
       if (result.isConfirmed) {
@@ -263,6 +255,7 @@ const AdminPage = () => {
             output_dir: "benchmark_results"
           });
 
+          // Mô phỏng tiến trình benchmark
           const interval = setInterval(() => {
             setBenchmarkProgress(prev => {
               const newProgress = prev + Math.random() * 10;
@@ -285,7 +278,7 @@ const AdminPage = () => {
           }, 15000);
 
         } catch (error) {
-          console.error('Error running benchmark:', error);
+          console.error('Lỗi khi chạy benchmark:', error);
           setRunningBenchmark(false);
           setBenchmarkProgress(0);
 
@@ -295,6 +288,7 @@ const AdminPage = () => {
     });
   };
 
+  // Xử lý đăng xuất
   const handleLogout = () => {
     showConfirm('Bạn có chắc chắn muốn đăng xuất?', 'Đăng xuất').then((result) => {
       if (result.isConfirmed) {
@@ -304,21 +298,96 @@ const AdminPage = () => {
     });
   };
 
+  // Xử lý làm mới toàn bộ dữ liệu
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
+      await Promise.allSettled([
         fetchSystemStats(),
         fetchUsers(),
         fetchDocuments(),
         fetchBenchmarkResults()
       ]);
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.error('Lỗi khi làm mới dữ liệu:', error);
       setError('Không thể làm mới dữ liệu');
     } finally {
       setRefreshing(false);
     }
+  };
+
+  // Lấy tiêu đề tab hiện tại
+  const getTabTitle = () => {
+    const titles = {
+      dashboard: 'Dashboard',
+      users: 'Quản lý người dùng',
+      documents: 'Quản lý văn bản',
+      cache: 'Quản lý cache',
+      benchmark: 'Benchmark'
+    };
+    return titles[activeTab] || 'Admin Panel';
+  };
+
+  // Render tab đang được chọn
+  const renderActiveTab = () => {
+    const commonProps = { isLoading };
+
+    switch (activeTab) {
+      case 'dashboard':
+        return (
+          <DashboardTab 
+            {...commonProps}
+            systemStats={systemStats}
+            users={users}
+            documents={documents}
+            benchmarkResults={benchmarkResults}
+          />
+        );
+      case 'users':
+        return <UsersTab {...commonProps} users={users} refreshUsers={refreshUsers} />;
+      case 'documents':
+        return (
+          <DocumentsTab 
+            {...commonProps}
+            documents={documents}
+            documentFilter={documentFilter}
+            setDocumentFilter={setDocumentFilter}
+            documentFiles={documentFiles}
+            setDocumentFiles={setDocumentFiles}
+            uploadMetadata={uploadMetadata}
+            setUploadMetadata={setUploadMetadata}
+            handleUploadDocument={handleUploadDocument}
+            handleDeleteDocument={handleDeleteDocument}
+          />
+        );
+      case 'cache':
+        return (
+          <CacheTab 
+            {...commonProps}
+            systemStats={systemStats}
+            isLoading={isLoading}
+            handleClearCache={handleClearCache}
+          />
+        );
+      case 'benchmark':
+        return (
+          <BenchmarkTab 
+            {...commonProps}
+            benchmarkResults={benchmarkResults}
+            runningBenchmark={runningBenchmark}
+            benchmarkProgress={benchmarkProgress}
+            handleRunBenchmark={handleRunBenchmark}
+          />
+        );
+      default:
+        return <DashboardTab {...commonProps} systemStats={systemStats} users={users} documents={documents} benchmarkResults={benchmarkResults} />;
+    }
+  };
+
+  // Hiệu ứng animation cho sidebar
+  const sidebarVariants = {
+    hidden: { x: -280 },
+    visible: { x: 0, transition: { type: "spring", stiffness: 300, damping: 30 } }
   };
 
   return (
@@ -331,20 +400,87 @@ const AdminPage = () => {
     >
       {error && <ErrorMessage message={error} onClose={() => setError(null)} />}
 
-      <AdminSidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        handleLogout={handleLogout} 
-        navigate={navigate} 
-      />
+      {/* Sidebar điều hướng */}
+      <motion.div
+        className="w-64 bg-white border-r border-gray-200 shadow-sm h-screen overflow-y-auto fixed left-0 top-0 z-10"
+        variants={sidebarVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo và tiêu đề */}
+          <div className="px-6 py-6 bg-gradient-to-r from-green-600 to-teal-600 text-white flex items-center space-x-2">
+            <div className="h-10 w-10 bg-white/10 rounded-lg flex items-center justify-center">
+              <LayoutDashboard size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold">Admin Panel</h1>
+              <p className="text-xs text-white/80">Quản trị hệ thống</p>
+            </div>
+          </div>
 
+          {/* Menu điều hướng */}
+          <nav className="flex-1 p-4">
+            <div className="space-y-1">
+              {[
+                { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+                { id: 'users', icon: Users, label: 'Quản lý người dùng' },
+                { id: 'documents', icon: FileText, label: 'Quản lý văn bản' },
+                { id: 'cache', icon: Database, label: 'Quản lý cache' },
+                { id: 'benchmark', icon: BarChart2, label: 'Benchmark' }
+              ].map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={`flex items-center w-full px-4 py-2.5 text-sm font-medium rounded-lg transition-colors ${activeTab === id
+                    ? 'bg-green-50 text-green-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                >
+                  <Icon size={18} className="mr-3" />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* Thông tin admin và nút đăng xuất */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex items-center mb-3">
+              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                <User size={20} className="text-green-600" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-700">Admin</p>
+                <p className="text-xs text-gray-500">admin@example.com</p>
+              </div>
+            </div>
+
+            <div className="flex space-x-2">
+              <button
+                onClick={() => navigate('/')}
+                className="flex-1 flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+              >
+                <ChevronLeft size={16} className="mr-1" />
+                <span>Trang chủ</span>
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center px-3 py-2 bg-red-100 text-red-600 rounded-lg text-sm hover:bg-red-200 transition-colors"
+              >
+                <LogOut size={16} className="mr-1" />
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Khu vực nội dung chính */}
       <div className="ml-64 flex-1 overflow-x-hidden">
         <TopNavBar 
-          title={activeTab === 'dashboard' && 'Dashboard' || 
-                activeTab === 'users' && 'Quản lý người dùng' || 
-                activeTab === 'documents' && 'Quản lý văn bản' || 
-                activeTab === 'cache' && 'Quản lý cache' ||
-                activeTab === 'benchmark' && 'Benchmark'}
+          title={getTabTitle()}
           customRight={
             <div className="flex items-center space-x-4">
               <button
@@ -363,58 +499,7 @@ const AdminPage = () => {
           }
         />
 
-        {activeTab === 'dashboard' && (
-          <DashboardTab 
-            systemStats={systemStats} 
-            users={users} 
-            documents={documents} 
-            benchmarkResults={benchmarkResults} 
-            isLoading={isLoading} 
-          />
-        )}
-
-        {activeTab === 'users' && (
-          <UsersTab users={users} isLoading={isLoading} />
-        )}
-
-        {activeTab === 'documents' && (
-          <DocumentsTab 
-            documents={documents} 
-            isLoading={isLoading} 
-            documentFilter={documentFilter}
-            setDocumentFilter={setDocumentFilter}
-            documentFiles={documentFiles}
-            setDocumentFiles={setDocumentFiles}
-            uploadMetadata={uploadMetadata}
-            setUploadMetadata={setUploadMetadata}
-            handleUploadDocument={handleUploadDocument}
-            handleDeleteDocument={handleDeleteDocument}
-          />
-        )}
-
-        {activeTab === 'cache' && (
-          <CacheTab 
-            systemStats={systemStats} 
-            isLoading={isLoading} 
-            invalidateDocId={invalidateDocId}
-            setInvalidateDocId={setInvalidateDocId}
-            searchCacheKeyword={searchCacheKeyword}
-            setSearchCacheKeyword={setSearchCacheKeyword}
-            handleClearCache={handleClearCache}
-            handleInvalidateDocCache={handleInvalidateDocCache}
-            handleSearchCache={handleSearchCache}
-          />
-        )}
-
-        {activeTab === 'benchmark' && (
-          <BenchmarkTab 
-            benchmarkResults={benchmarkResults} 
-            isLoading={isLoading}
-            runningBenchmark={runningBenchmark}
-            benchmarkProgress={benchmarkProgress}
-            handleRunBenchmark={handleRunBenchmark}
-          />
-        )}
+        {renderActiveTab()}
       </div>
     </motion.div>
   );

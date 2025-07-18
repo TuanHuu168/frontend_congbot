@@ -5,13 +5,11 @@ import rehypeSanitize from 'rehype-sanitize';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import { itemVariants } from '../../utils/formatUtils';
-import chatbotIcon from '../../assets/images/chatbot-icon.png';
-import userIcon from '../../assets/images/user-icon.png';
 
 const BotAvatar = memo(() => (
   <div className="w-10 h-10 rounded-full flex-shrink-0 mr-2 overflow-hidden shadow-md">
     <img
-      src={chatbotIcon}
+      src="/src/assets/images/chatbot-icon.png"
       alt="Bot"
       className="w-full h-full object-cover"
       onError={(e) => {
@@ -25,7 +23,7 @@ const BotAvatar = memo(() => (
 const UserAvatar = memo(() => (
   <div className="w-10 h-10 rounded-full flex-shrink-0 ml-2 overflow-hidden shadow-md">
     <img
-      src={userIcon}
+      src="/src/assets/images/user-icon.png"
       alt="User"
       className="w-full h-full object-cover"
     />
