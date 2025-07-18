@@ -1,22 +1,23 @@
 import axios from 'axios';
-import { showError, showSuccess, getAuthData, clearAuthData } from './utils/formatUtils';
+import { showError, getAuthData, clearAuthData } from './utils/formatUtils';
 
-const API_BASE_URL = 'https://ng3owb-congbotfe.hf.space';
+const API_BASE_URL = "https://ng3owb-congbotfe.hf.space/api"; // Sử dụng API base URL mặc định
 
+// Tạo axios client với cấu hình mặc định
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' }
 });
 
-// Request interceptor
+// Interceptor để thêm token vào header
 apiClient.interceptors.request.use(config => {
   const { token } = getAuthData();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Response interceptor với error handling tự động
+// Interceptor để xử lý response và lỗi
 apiClient.interceptors.response.use(
   response => response,
   error => {
@@ -26,6 +27,7 @@ apiClient.interceptors.response.use(
         ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
         : error.response?.data?.detail || 'Có lỗi xảy ra. Vui lòng thử lại.';
 
+    // Xử lý lỗi 401 - chuyển hướng về trang đăng nhập
     if (error.response?.status === 401) {
       clearAuthData();
       window.location.href = '/login';
@@ -35,7 +37,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-// API methods với error handling tích hợp
+// Hàm gọi API
 const apiCall = async (method, url, data = null, config = {}) => {
   try {
     const response = await apiClient[method](url, data, config);
@@ -45,7 +47,7 @@ const apiCall = async (method, url, data = null, config = {}) => {
   }
 };
 
-// User API
+// API cho quản lý người dùng
 export const userAPI = {
   getInfo: (userId) => apiCall('get', `/users/${userId}`),
   register: (userData) => apiCall('post', '/users/register', userData),
@@ -54,7 +56,7 @@ export const userAPI = {
   changePassword: (userId, passwords) => apiCall('put', `/users/${userId}/change-password`, passwords)
 };
 
-// Chat API
+// API cho chat và cuộc trò chuyện
 export const chatAPI = {
   ask: (query, sessionId = null) => {
     const { userId } = getAuthData();
@@ -88,7 +90,7 @@ export const chatAPI = {
   }
 };
 
-// Admin API với endpoints cập nhật
+// API cho admin
 export const adminAPI = {
   getStatus: () => apiCall('get', '/status'),
   clearCache: () => apiCall('post', '/clear-cache'),
@@ -105,18 +107,14 @@ export const adminAPI = {
   toggleUserStatus: (userId) => apiCall('post', `/users/${userId}/toggle-status`)
 };
 
-// Legacy exports để tương thích
+// Export các API để sử dụng trong ứng dụng
 export const askQuestion = chatAPI.ask;
-export const createNewChat = chatAPI.create;
 export const getUserChats = chatAPI.getAll;
 export const getChatMessages = chatAPI.getMessages;
 export const updateChatTitle = chatAPI.updateTitle;
 export const deleteChat = chatAPI.delete;
 export const deleteChatsBatch = chatAPI.deleteBatch;
 export const getUserInfo = userAPI.getInfo;
-
-// Export utilities
-export { showError, showSuccess };
 
 // Hàm để lấy base URL
 export const getApiBaseUrl = () => API_BASE_URL;
