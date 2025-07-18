@@ -1,33 +1,38 @@
 import axios from 'axios';
 import { showError, getAuthData, clearAuthData } from './utils/formatUtils';
 
-const API_BASE_URL = "https://ng3owb-congbotfe.hf.space"; // Sử dụng API base URL mặc định
+const API_BASE_URL = "https://ng3owb-congbotfe.hf.space";
 
-// Tạo axios client với cấu hình mặc định
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' }
 });
 
-// Interceptor để thêm token vào header
+// Request interceptor
 apiClient.interceptors.request.use(config => {
   const { token } = getAuthData();
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  
+  // Debug log để kiểm tra URL
+  console.log(`🔍 API Call: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+  
   return config;
 });
 
-// Interceptor để xử lý response và lỗi
+// Response interceptor  
 apiClient.interceptors.response.use(
   response => response,
   error => {
+    // Debug log lỗi
+    console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.response?.status);
+    
     const errorMessage = error.code === 'ECONNABORTED' || !error.response
       ? 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.'
       : error.response?.status === 401
         ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'
         : error.response?.data?.detail || 'Có lỗi xảy ra. Vui lòng thử lại.';
 
-    // Xử lý lỗi 401 - chuyển hướng về trang đăng nhập
     if (error.response?.status === 401) {
       clearAuthData();
       window.location.href = '/login';
@@ -37,7 +42,6 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Hàm gọi API
 const apiCall = async (method, url, data = null, config = {}) => {
   try {
     const response = await apiClient[method](url, data, config);
@@ -47,16 +51,15 @@ const apiCall = async (method, url, data = null, config = {}) => {
   }
 };
 
-// API cho quản lý người dùng
+// ✅ API endpoints CHÍNH XÁC cho backend (KHÔNG có /api prefix)
 export const userAPI = {
   getInfo: (userId) => apiCall('get', `/users/${userId}`),
-  register: (userData) => apiCall('post', '/users/register', userData),
+  register: (userData) => apiCall('post', '/users/register', userData), 
   login: (credentials) => apiCall('post', '/users/login', credentials),
   update: (userId, data) => apiCall('put', `/users/${userId}`, data),
   changePassword: (userId, passwords) => apiCall('put', `/users/${userId}/change-password`, passwords)
 };
 
-// API cho chat và cuộc trò chuyện
 export const chatAPI = {
   ask: (query, sessionId = null) => {
     const { userId } = getAuthData();
@@ -90,7 +93,6 @@ export const chatAPI = {
   }
 };
 
-// API cho admin
 export const adminAPI = {
   getStatus: () => apiCall('get', '/status'),
   clearCache: () => apiCall('post', '/clear-cache'),
@@ -107,7 +109,7 @@ export const adminAPI = {
   toggleUserStatus: (userId) => apiCall('post', `/users/${userId}/toggle-status`)
 };
 
-// Export các API để sử dụng trong ứng dụng
+// Legacy exports
 export const askQuestion = chatAPI.ask;
 export const getUserChats = chatAPI.getAll;
 export const getChatMessages = chatAPI.getMessages;
@@ -116,5 +118,4 @@ export const deleteChat = chatAPI.delete;
 export const deleteChatsBatch = chatAPI.deleteBatch;
 export const getUserInfo = userAPI.getInfo;
 
-// Hàm để lấy base URL
 export const getApiBaseUrl = () => API_BASE_URL;
