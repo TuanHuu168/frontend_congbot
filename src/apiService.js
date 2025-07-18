@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { showError, getAuthData, clearAuthData } from './utils/formatUtils';
 
-const API_BASE_URL = "https://ng3owb-congbotfe.hf.space/api"; // Sử dụng API base URL mặc định
+const API_BASE_URL = "https://ng3owb-congbotfe.hf.space"; // Sử dụng API base URL mặc định
 
 // Tạo axios client với cấu hình mặc định
 const apiClient = axios.create({
