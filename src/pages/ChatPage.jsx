@@ -9,6 +9,7 @@ import TopNavBar from '../components/common/TopNavBar';
 import ChatSidebar from '../components/chat/ChatSidebar';
 import MessageItem from '../components/chat/MessageItem';
 import ErrorMessage from '../components/common/ErrorMessage';
+import chatbotIcon from '../../assets/images/chatbot-icon.png';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -400,7 +401,7 @@ const ChatPage = () => {
                   <div className="flex justify-start mb-4">
                     <div className="w-10 h-10 rounded-full flex-shrink-0 mr-2 overflow-hidden shadow-md">
                       <img
-                        src="/src/assets/images/chatbot-icon.png"
+                        src={chatbotIcon}
                         alt="Bot"
                         className="w-full h-full object-cover"
                         onError={(e) => {
