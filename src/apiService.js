@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { showError, getAuthData, clearAuthData } from './utils/formatUtils';
 
-const API_BASE_URL = "https://ng3owb-congbotfe.hf.space";
+const API_BASE_URL = "https://ng3owb-testapi.hf.space/api";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -51,7 +51,6 @@ const apiCall = async (method, url, data = null, config = {}) => {
   }
 };
 
-// ✅ API endpoints CHÍNH XÁC cho backend (KHÔNG có /api prefix)
 export const userAPI = {
   getInfo: (userId) => apiCall('get', `/users/${userId}`),
   register: (userData) => apiCall('post', '/users/register', userData), 
